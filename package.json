@@ -1,0 +1,19 @@
+{
+  "name": "qimen-web",
+  "version": "1.0.0",
+  "description": "奇门遁甲·宗师排盘版 全栈网站（前端静态页 + Node.js 后端代理 DeepSeek API）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "set NODE_ENV=development&& node server.js"
+  },
+  "keywords": ["qimen", "deepseek", "lunar", "chinese-metaphysics"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.0",
+    "node-fetch": "^2.6.7"
+  }
+}

@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>奇门遁甲·宗师排盘版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --bg-body: #f0f9ff;
+            --bg-panel: #ffffff;
+            --primary: #0f172a;
+            --accent: #0ea5e9;
+            --accent-light: #38bdf8;
+            --accent-deep: #0284c7;
+            --border: #bae6fd;
+            --border-light: #e0f2fe;
+            --ink: #0f172a;
+            --text-secondary: #64748b;
+            --wood: #22c55e; --fire: #f97316; --earth: #a16207; --metal: #0ea5e9; --water: #2563eb;
+        }
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        body {
+            background: linear-gradient(165deg, #f0f9ff 0%, #e0f2fe 30%, #f0f9ff 70%, #e0f2fe 100%);
+            background-attachment: fixed;
+            color: var(--primary);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+            margin: 0; padding: 0; font-size: 17px; line-height: 1.47059; font-weight: 400; letter-spacing: -0.022em;
+            min-height: 100vh;
+        }
+        .container { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; display: flex; flex-direction: column; min-height: 100vh; animation: fadeIn 0.6s cubic-bezier(0.25,0.1,0.25,1); }
+
+        .page-title {
+            text-align: center; margin: 0 0 12px; font-size: 2.5rem; font-weight: 700; color: var(--ink);
+            letter-spacing: -0.025em; line-height: 1.1;
+        }
+        .page-subtitle {
+            text-align: center; font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 32px;
+            font-weight: 400; letter-spacing: -0.01em;
+        }
+
+        .badge-tech {
+            align-self: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 18px;
+            border-radius: 980px;
+            background: linear-gradient(135deg, rgba(14,165,233,0.15) 0%, rgba(56,189,248,0.08) 100%);
+            border: 1px solid rgba(14,165,233,0.3);
+            font-size: 14px;
+            color: var(--ink);
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+        .badge-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px rgba(14,165,233,0.5);
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .view-tab-btn {
+            flex: 1;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #fff;
+            padding: 16px 20px;
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.25s cubic-bezier(0.25,0.1,0.25,1);
+        }
+        .view-tab-btn span.icon { font-size: 20px; }
+        .view-tab-btn.active {
+            background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+            color: #fff;
+            border-color: #0369a1;
+            box-shadow: 0 4px 16px rgba(14,165,233,0.35);
+        }
+        .view-tab-btn:not(.active):hover {
+            background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%);
+            border-color: var(--accent-light);
+            color: var(--accent-deep);
+        }
+
+        .guide-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
+            border: 1px solid rgba(14,165,233,0.25);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 32px;
+            font-size: 15px;
+            color: var(--ink);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .guide-icon { font-size: 1.5em; line-height: 1; }
+        .guide-text strong { color: var(--ink); font-weight: 600; }
+
+        .control-card {
+            background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(240,249,255,0.95) 100%);
+            border-radius: 20px;
+            padding: 32px 36px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 32px rgba(14,165,233,0.12), 0 0 0 1px rgba(14,165,233,0.08);
+        }
+        .form-group { margin-bottom: 24px; }
+        .form-group:last-of-type { margin-bottom: 28px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 10px; letter-spacing: -0.01em; }
+        .flex-row { display: flex; gap: 12px; }
+        .flex-1 { flex: 1; }
+
+        input, select, textarea {
+            width: 100%; box-sizing: border-box; padding: 14px 16px;
+            border: 1px solid var(--border); border-radius: 12px;
+            font-size: 17px; font-family: inherit;
+            background: #fff;
+            appearance: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--accent-light);
+            box-shadow: 0 0 0 4px rgba(14,165,233,0.2);
+        }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: #fff;
+            border: none;
+            padding: 18px 24px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 17px;
+            cursor: pointer;
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 6px 24px rgba(14,165,233,0.4);
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+        .btn-submit:hover { transform: scale(1.01); box-shadow: 0 8px 28px rgba(14,165,233,0.5); }
+        .btn-submit:active { transform: scale(0.99); }
+
+        .pan-header {
+            background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+            padding: 28px 32px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(14,165,233,0.15);
+            box-shadow: 0 4px 20px rgba(14,165,233,0.1);
+            border-top: 3px solid var(--accent);
+        }
+        .ph-title { font-size: 1.15em; font-weight: 600; color: var(--ink); border-bottom: 1px dashed var(--border); padding-bottom: 16px; margin-bottom: 16px; }
+        .ph-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 15px; color: var(--text-secondary); }
+        .ph-tag {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--ink);
+            border: 1px solid rgba(14,165,233,0.15);
+        }
+        .highlight { color: var(--accent); font-weight: 600; }
+        .bazi-font { font-family: "Noto Serif SC", serif; font-size: 1.1em; letter-spacing: 1px; color: var(--ink); }
+
+        .grid-box {
+            width: 100%; aspect-ratio: 1/1;
+            background: linear-gradient(145deg, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
+            border: 2px solid rgba(14,165,233,0.25);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 0;
+            box-shadow: 0 8px 28px rgba(14,165,233,0.12);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .cell {
+            position: relative;
+            border: 1px solid var(--border);
+            margin: -1px 0 0 -1px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 26px 1fr 30px;
+            gap: 4px;
+            background: #fff;
+        }
+        .cell-left {
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-right: 1px solid var(--border);
+        }
+        .font-gua { font-size: 0.9em; font-weight: 600; color: var(--text-secondary); writing-mode: vertical-lr; font-family: "Noto Serif SC", serif; }
+        .cell-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .font-god { font-size: 0.8em; font-weight: 600; }
+        .font-star { font-size: 0.9em; color: var(--ink); }
+        .font-door { font-size: 1.1em; font-weight: 600; font-family: "Noto Serif SC", serif; }
+        .cell-right {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 1px solid var(--border);
+        }
+        .stem-char { font-family: "Noto Serif SC", serif; font-size: 1.1em; font-weight: 600; line-height: 1; }
+        .sky-group { display: flex; flex-direction: column; align-items: center; }
+
+        .mark-ma { position: absolute; bottom: 6px; left: 6px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 8px; font-weight: 600; }
+        .mark-kong { position: absolute; top: 6px; left: 6px; border: 1px solid var(--border); color: var(--text-secondary); font-size: 11px; padding: 4px 8px; border-radius: 8px; }
+
+        .wx-wood { color: var(--wood); } .wx-fire { color: var(--fire); } .wx-earth { color: var(--earth); }
+        .wx-metal { color: var(--metal); } .wx-water { color: var(--water); }
+        .center-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid rgba(14,165,233,0.2); }
+
+        #aiResult {
+            margin-top: 28px;
+            padding: 28px 32px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%);
+            border-radius: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--ink);
+            border: 1px solid rgba(14,165,233,0.15);
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 6px 24px rgba(14,165,233,0.1);
+        }
+        .ai-header { font-weight: 600; color: var(--accent-deep); margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(14,165,233,0.2); font-size: 1.1rem; }
+        #aiResult p { margin: 0.8em 0; }
+
+        /* 股市预测 */
+        .stock-section-header { font-size: 15px; color: var(--text-secondary); padding-bottom: 8px; border-bottom: 1px dashed var(--border); margin-bottom: 24px; }
+        .stock-result-card {
+            margin-top: 24px;
+            padding: 28px 32px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(14,165,233,0.15);
+            box-shadow: 0 6px 24px rgba(14,165,233,0.1);
+        }
+        .stock-result-title { font-weight: 600; font-size: 1.15rem; color: var(--ink); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .stock-metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stock-metric-item {
+            background: rgba(255,255,255,0.9);
+            padding: 20px 24px;
+            border-radius: 14px;
+            border: 1px solid rgba(14,165,233,0.12);
+            box-shadow: 0 2px 8px rgba(14,165,233,0.05);
+        }
+        .stock-metric-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+        .stock-metric-value { font-size: 17px; font-weight: 600; color: var(--ink); }
+        .stock-metric-support .stock-metric-value { color: #059669; }
+        .stock-metric-resistance .stock-metric-value { color: #dc2626; }
+        .stock-metric-tendency { grid-column: 1 / -1; }
+        .stock-summary { font-size: 14px; white-space: pre-line; color: var(--text-secondary); border-top: 1px dashed rgba(14,165,233,0.3); padding-top: 20px; margin-top: 20px; line-height: 1.6; }
+        .stock-chart-wrapper {
+            margin-top: 24px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fcff 100%);
+            border: 1px solid rgba(14,165,233,0.15);
+            box-shadow: 0 6px 24px rgba(14,165,233,0.1);
+        }
+        .stock-chart-header { padding: 16px 24px; background: linear-gradient(90deg, rgba(14,165,233,0.08) 0%, transparent 100%); font-size: 15px; font-weight: 600; color: var(--accent-deep); }
+        .stock-chart-body { width: 100%; height: 280px; min-height: 260px; padding: 16px; box-sizing: border-box; }
+        .stock-ai-box {
+            margin-top: 24px;
+            padding: 28px 32px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%);
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--ink);
+            border: 1px solid rgba(14,165,233,0.2);
+            box-shadow: 0 6px 24px rgba(14,165,233,0.08);
+            animation: fadeIn 0.4s ease-out;
+        }
+        .stock-ai-title { font-weight: 600; font-size: 1.1rem; color: var(--accent-deep); margin-bottom: 16px; }
+        .stock-zone-card {
+            margin-bottom: 20px;
+            padding: 20px 24px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.9);
+            border: 1px dashed rgba(14,165,233,0.35);
+            font-size: 14px;
+            color: #0369a1;
+        }
+        .stock-zone-card .stock-metric-value { font-size: 16px; }
+        .stock-disclaimer { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+        .analysis-mode-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+        .mode-opt { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink); cursor: pointer; }
+        .mode-opt input { width: auto; }
+        .knowledge-hint { margin: 10px 0 0; font-size: 0.85rem; color: #64748b; line-height: 1.5; }
+        .pay-modal { position: fixed; inset: 0; z-index: 9999; background: rgba(15,23,42,0.6); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .pay-modal-content { background: #fff; border-radius: 20px; padding: 28px 32px; max-width: 380px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); border: 1px solid var(--border); }
+        .pay-modal-title { font-size: 1.25rem; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+        .pay-modal-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; }
+        .pay-amount { color: #059669; font-size: 1.1em; }
+        .pay-modal-code-line { font-size: 15px; margin-bottom: 16px; padding: 10px 14px; background: #f0fdf4; border-radius: 10px; border: 1px solid #bbf7d0; }
+        .pay-unlock-code { color: #047857; font-size: 1.2em; letter-spacing: 0.15em; }
+        .pay-modal-code-hint { font-size: 12px; color: #64748b; margin-left: 6px; }
+        .pay-modal-paid-btn { width: 100%; padding: 12px 16px; margin-bottom: 16px; border-radius: 10px; border: 1px solid #059669; background: #f0fdf4; color: #047857; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .pay-modal-paid-btn:hover { background: #dcfce7; }
+        .pay-modal-qr-wrap { text-align: center; margin: 16px 0; min-height: 180px; }
+        .pay-modal-qr { max-width: 200px; height: auto; border-radius: 12px; }
+        .pay-modal-qr-placeholder { font-size: 13px; color: #94a3b8; }
+        .pay-modal-account { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+        .pay-modal-input-wrap { display: flex; gap: 10px; margin-bottom: 8px; }
+        .pay-modal-input { flex: 1; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 15px; }
+        .pay-modal-btn { padding: 12px 20px; border-radius: 10px; background: linear-gradient(135deg,#0ea5e9,#0284c7); color: #fff; border: none; font-weight: 600; cursor: pointer; }
+        .pay-modal-msg { font-size: 13px; min-height: 20px; margin-bottom: 8px; }
+        .pay-modal-msg.ok { color: #059669; }
+        .pay-modal-msg.err { color: #dc2626; }
+        .pay-modal-close { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: #f8fafc; cursor: pointer; font-size: 14px; }
+        .brief-mode-tip { padding: 16px 20px; font-size: 15px; color: var(--text-secondary); line-height: 1.6; background: #f8fafc; border-radius: 12px; margin-top: 12px; border: 1px dashed var(--border); }
+        /* 手机端文字可读性 */
+        @media (max-width: 768px) {
+            body { font-size: 18px; line-height: 1.6; }
+            .container { padding: 24px 16px 60px; }
+            .stock-ai-box { font-size: 16px; line-height: 1.8; padding: 20px 18px; }
+            .stock-ai-box p, .stock-ai-box li { font-size: 16px; line-height: 1.8; margin-bottom: 0.75em; }
+            .stock-ai-title { font-size: 1.15rem; margin-bottom: 14px; }
+            .stock-zone-card { font-size: 15px; padding: 18px 16px; }
+            .stock-zone-card .stock-metric-value { font-size: 17px; }
+            .stock-disclaimer { font-size: 14px !important; line-height: 1.6; color: #475569; }
+            .stock-result-card, .stock-summary { font-size: 16px; line-height: 1.75; }
+            .stock-metric-label { font-size: 14px; }
+            .stock-metric-value { font-size: 18px; }
+            .stock-chart-body { height: 260px; min-height: 220px; }
+            .control-card { padding: 24px 20px; }
+            .guide-box { font-size: 16px; padding: 18px 20px; }
+            .pan-content, .interpret-content { font-size: 16px; line-height: 1.75; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="page-title">奇门遁甲 · 宗师排盘</h1>
+    <p class="page-subtitle">真太阳时 · 九宫格局 · AI 解读</p>
+    <div class="badge-tech">
+        <span class="badge-dot"></span>
+        <span>AI 奇门推演 · 股市盘位模拟 · 科技加持的东方数术</span>
+    </div>
+
+    <div class="view-tabs">
+        <button id="tab-qimen" class="view-tab-btn active" onclick="switchView('qimen')">
+            <span class="icon">☯️</span><span>奇门问事</span>
+        </button>
+        <button id="tab-stock" class="view-tab-btn" onclick="switchView('stock')">
+            <span class="icon">📈</span><span>股市预测</span>
+        </button>
+    </div>
+
+    <!-- 奇门问事板块 -->
+    <div id="qimenSection">
+        <div class="guide-box">
+            <div class="guide-icon">🔔</div>
+            <div class="guide-text">
+                <strong>排盘禁忌：一盘只占一事！</strong><br>
+                奇门盘面信息量大，但落宫只能对应一类象意。求测什么就问什么，<strong>切勿</strong>在同一个盘里既问财运又问感情，否则信息混杂，断语必错。
+            </div>
+        </div>
+
+        <div class="control-card">
+        <div class="form-group">
+            <label>1. 问事主题 (必填，用于引导 AI 聚焦)</label>
+            <textarea id="userQuestion" placeholder="例如：我想问近期的财运如何？或者：这个工作项目能不能成？(请具体描述，只问一件事)"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>2. 问事时间 (自动校准真太阳时)</label>
+            <input type="datetime-local" id="askTime">
+        </div>
+
+        <div class="form-group">
+            <label>3. 问事地点 (经度校准核心)</label>
+            <div class="flex-row">
+                <select id="provinceSel"></select>
+                <select id="citySel"></select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>4. 命主出生 (选填，排八字用)</label>
+            <input type="datetime-local" id="birthTime">
+        </div>
+
+        <div class="form-group">
+            <label>5. DeepSeek API Key (AI 解读必填)</label>
+            <input type="password" id="apiKey" placeholder="sk-...">
+        </div>
+
+        <div class="form-group">
+            <label>6. 分析深度</label>
+            <div class="analysis-mode-row">
+                <label class="mode-opt"><input type="radio" name="qimenMode" value="brief" checked> 简要分析（免费）</label>
+                <label class="mode-opt"><input type="radio" name="qimenMode" value="detail"> 详细分析（付费）</label>
+            </div>
+            <p class="knowledge-hint">断事逻辑来自雨霖课程字幕整理，保证解读时按步骤、按逻辑输出；知识库含用神取法、解盘步骤、九宫象意、空亡应期等。</p>
+        </div>
+
+        <button class="btn-submit" onclick="runSystem()">
+            <span>☯️</span> 开始排盘与分析
+        </button>
+        </div>
+
+        <div id="panArea" style="display:none;">
+        <div class="pan-header">
+            <div class="ph-title" id="dateInfo"></div>
+            <div style="margin-bottom:8px;">
+                <span class="ph-tag">问事八字</span> <span class="bazi-font" id="baziInfo"></span>
+            </div>
+            <div id="birthRow" style="display:none; margin-bottom:8px;">
+                <span class="ph-tag">命主八字</span> <span class="bazi-font" id="birthInfo"></span>
+            </div>
+            <div class="ph-info">
+                <span id="jieqiInfo"></span>
+                <span id="xunInfo"></span>
+                <span id="zhifuInfo" class="highlight"></span>
+            </div>
+            <div id="solarNote" style="font-size:0.8em; color:#999; margin-top:6px; text-align:right;"></div>
+        </div>
+
+        <div class="grid-box" id="grid"></div>
+
+        <div id="aiResult" style="display:none;"></div>
+
+            <!-- 奇门 AI 追问对话框 -->
+            <div id="aiChatCard" style="display:none;margin-top:24px;padding:24px 28px;background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%);border-radius:20px;border:1px solid rgba(14,165,233,0.25);">
+                <div style="font-size:15px;font-weight:600;color:#0369a1;margin-bottom:10px;">继续向 AI 宗师追问</div>
+                <div style="font-size:14px;color:#475569;margin-bottom:12px;">
+                    可在<strong>同一盘</strong>基础上追问细节，例如：<br>
+                    “如果坚持这份工作三个月，大致会怎样？”、“换一个更激进的操作方式风险在哪？” 等。<br>
+                    请仍然遵守“一盘一事”，不要混入全新问题。
+                </div>
+                <textarea id="followQuestion" placeholder="请输入想追问的具体问题，例如：这件事情短期内还有转机吗？" style="width:100%;box-sizing:border-box;padding:14px 16px;border-radius:12px;border:1px solid #e8e8ed;font-size:15px;min-height:72px;"></textarea>
+                <button class="btn-submit" style="margin-top:8px;padding:10px 12px;font-size:14px;" onclick="runQimenFollowChat()">
+                    <span>💬</span> 继续请教 AI 宗师
+                </button>
+                <div id="followAnswer" style="display:none;margin-top:16px;padding:16px 20px;background:#f0f9ff;border-radius:14px;font-size:15px;color:#334155;border:1px dashed rgba(14,165,233,0.35);"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 股市预测板块 -->
+    <div id="stockSection" style="display:none;">
+        <div class="control-card" style="margin-top: 4px;">
+            <div class="stock-section-header">📊 股市预测实验室 · 示例功能，仅供体验，不构成投资建议</div>
+            <div class="form-group">
+                <label>市场与股票代码</label>
+                <div class="flex-row">
+                    <select id="stockMarket" class="flex-1">
+                        <option value="A">A股</option>
+                        <option value="US">美股</option>
+                    </select>
+                    <input class="flex-1" id="stockSymbol" placeholder="例如：600519 / 000001 / AAPL">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>预测周期</label>
+                <select id="stockHorizon">
+                    <option value="day">当日 / 次日盘位</option>
+                    <option value="week">未来一周区间</option>
+                    <option value="month">未来一月大致区间</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>K 线时间范围</label>
+                <select id="stockRange">
+                    <option value="1h">近 1 小时</option>
+                    <option value="3h">近 3 小时</option>
+                    <option value="1d" selected>近 1 天</option>
+                    <option value="6m">近半年</option>
+                    <option value="1y">近一年</option>
+                </select>
+            </div>
+            <button class="btn-submit" onclick="runStockPredict()">
+                <span>📈</span> 股市盘位预测（示例）
+            </button>
+            <div id="stockResult" class="stock-result-card" style="display:none;"></div>
+            <div id="stockChart" class="stock-chart-wrapper" style="display:none;">
+                <div class="stock-chart-header">📉 K 线走势（使用奇门+AI 解读后显示）</div>
+                <div class="stock-chart-body" id="stockChartCanvas"></div>
+            </div>
+            <div id="stockAiExplain" class="stock-ai-box" style="display:none;"></div>
+            <div class="form-group" style="margin-top:12px;">
+                <label>分析深度</label>
+                <div class="analysis-mode-row">
+                    <label class="mode-opt"><input type="radio" name="stockMode" value="brief" checked> 简要（免费）</label>
+                    <label class="mode-opt"><input type="radio" name="stockMode" value="detail"> 详细（付费）</label>
+                </div>
+            </div>
+            <button class="btn-submit" style="margin-top:12px;background:linear-gradient(135deg,#0369a1 0%,#0c4a6e 100%);box-shadow:0 6px 20px rgba(2,132,199,0.4);" onclick="runStockQimenAI()">
+                <span>☯️</span> 奇门 + AI 解读当前股票
+            </button>
+        </div>
+    </div>
+
+    <!-- 付费解锁弹窗：扫码支付，到账后客服发送解锁码 -->
+    <div id="payModal" class="pay-modal" style="display:none;">
+        <div class="pay-modal-content">
+            <div class="pay-modal-title">📱 详细分析需付费</div>
+            <p class="pay-modal-desc">支付 <strong class="pay-amount">29.9 元</strong> 后，即可使用详细分析（含奇门问事与股市解读）。</p>
+            <div class="pay-modal-qr-wrap">
+                <img src="images/wechat-pay-qr.png" alt="微信支付" class="pay-modal-qr" onerror="this.style.display='none'; var p=this.nextElementSibling; if(p) p.style.display='block';">
+                <div class="pay-modal-qr-placeholder" style="display:none;">请将微信支付二维码保存为<br><code>qimen-web/public/images/wechat-pay-qr.png</code><br>刷新页面后即可显示</div>
+            </div>
+            <p class="pay-modal-account">收款：风影如旧(之) · 推荐使用微信支付</p>
+            <p class="pay-modal-code-hint" style="margin:10px 0 6px 0; color:#666; font-size:0.9em;">付款到账后，客服会发送解锁码给您，请在下框输入后点击解锁。</p>
+            <div class="pay-modal-input-wrap">
+                <input type="text" id="unlockCodeInput" placeholder="请输入付款到账后客服告知的解锁码" class="pay-modal-input">
+                <button type="button" class="pay-modal-btn" onclick="doUnlock()">解锁</button>
+            </div>
+            <p id="unlockMsg" class="pay-modal-msg"></p>
+            <button type="button" class="pay-modal-close" onclick="closePayModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// API 必须通过同一台 Node 服务访问，不能直接双击打开 html（file://）
+var API_BASE = window.location.origin;
+var PAY_TOKEN_KEY = 'qimen_paid_token';
+
+function sanitizeApiKey(val) {
+  var s = (val || '').trim();
+  var i = s.indexOf('sk-');
+  if (i !== -1) s = s.slice(i);
+  return s.replace(/[/\s].*$/g, '').trim();
+}
+
+function getStoredPaidToken() {
+  try { return localStorage.getItem(PAY_TOKEN_KEY) || null; } catch(e) { return null; }
+}
+function setStoredPaidToken(t) {
+  try { if (t) localStorage.setItem(PAY_TOKEN_KEY, t); else localStorage.removeItem(PAY_TOKEN_KEY); } catch(e) {}
+}
+
+function showPayModal() {
+  var el = document.getElementById('payModal');
+  if (el) {
+    el.style.display = 'flex';
+    document.getElementById('unlockCodeInput').value = '';
+    document.getElementById('unlockMsg').textContent = '';
+  }
+}
+function closePayModal() {
+  var el = document.getElementById('payModal');
+  if (el) el.style.display = 'none';
+}
+function doUnlock() {
+  var code = (document.getElementById('unlockCodeInput').value || '').trim();
+  var msgEl = document.getElementById('unlockMsg');
+  if (!code) { msgEl.textContent = '请输入解锁码'; msgEl.className = 'pay-modal-msg err'; return; }
+  if (window.location.protocol === 'file:') {
+    msgEl.textContent = '请通过 http://localhost:3001 打开页面后再解锁'; msgEl.className = 'pay-modal-msg err';
+    return;
+  }
+  msgEl.textContent = '验证中...'; msgEl.className = 'pay-modal-msg';
+  fetch(API_BASE + '/api/unlock', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code })
+  }).then(function(r) {
+    return r.text().then(function(text) {
+      var data = {};
+      try { data = text ? JSON.parse(text) : {}; } catch(e) {}
+      if (r.ok && data.token) {
+        setStoredPaidToken(data.token);
+        msgEl.textContent = '解锁成功，可使用详细分析'; msgEl.className = 'pay-modal-msg ok';
+        setTimeout(function() { closePayModal(); }, 1200);
+      } else {
+        msgEl.textContent = data.error || ('请求异常 ' + r.status); msgEl.className = 'pay-modal-msg err';
+      }
+    });
+  }).catch(function(err) {
+    msgEl.textContent = '无法连接服务器，请确认已运行 npm start 并访问 http://localhost:' + (window.location.port || '3001'); msgEl.className = 'pay-modal-msg err';
+  });
+}
+
+if (window.location.protocol === 'file:') {
+    (function() {
+        var tip = document.createElement('div');
+        tip.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:16px 24px;text-align:center;font-size:15px;font-weight:500;';
+        tip.innerHTML = '⚠️ 当前为本地文件打开，API 无法调用。请先在项目目录运行 <code>npm start</code> 或 <code>node server.js</code>，再在浏览器访问 <strong>http://localhost:3001</strong>';
+        document.body.insertBefore(tip, document.body.firstChild);
+    })();
+}
+
+// --- 城市经纬度数据（与原版一致） ---
+const CITY_DATA = {
+    "北京": [["北京",116.40]], "天津": [["天津",117.20]], "上海": [["上海",121.47]], "重庆": [["重庆",106.55]],
+    "河北": [["石家庄",114.51],["唐山",118.18],["秦皇岛",119.60],["邯郸",114.49],["邢台",114.50],["保定",115.47],["张家口",114.88],["承德",117.96],["沧州",116.85],["廊坊",116.68],["衡水",115.67],["雄安",116.0]],
+    "山西": [["太原",112.55],["大同",113.30],["阳泉",113.58],["长治",113.11],["晋城",112.85],["朔州",112.43],["晋中",112.75],["运城",111.00],["忻州",112.73],["临汾",111.51],["吕梁",111.14]],
+    "内蒙古": [["呼和浩特",111.74],["包头",109.84],["乌海",106.83],["赤峰",118.96],["通辽",122.25],["鄂尔多斯",109.78],["呼伦贝尔",119.76],["巴彦淖尔",107.39],["乌兰察布",113.13],["兴安盟",122.05],["锡林郭勒",116.07],["阿拉善",105.72]],
+    "辽宁": [["沈阳",123.43],["大连",121.61],["鞍山",122.99],["抚顺",123.94],["本溪",123.76],["丹东",124.35],["锦州",121.12],["营口",122.23],["阜新",121.67],["辽阳",123.17],["盘锦",122.07],["铁岭",123.83],["朝阳",120.45],["葫芦岛",120.83]],
+    "吉林": [["长春",125.32],["吉林",126.54],["四平",124.35],["辽源",125.13],["通化",125.93],["白山",126.42],["松原",124.82],["白城",122.83],["延边",129.50]],
+    "黑龙江": [["哈尔滨",126.66],["齐齐哈尔",123.96],["鸡西",130.96],["鹤岗",130.29],["双鸭山",131.15],["大庆",125.10],["伊春",128.89],["佳木斯",130.31],["七台河",131.00],["牡丹江",129.63],["黑河",127.52],["绥化",126.96],["大兴安岭",124.71]],
+    "江苏": [["南京",118.79],["无锡",120.31],["徐州",117.28],["常州",119.97],["苏州",120.58],["南通",120.89],["连云港",119.22],["淮安",119.01],["盐城",120.16],["扬州",119.41],["镇江",119.45],["泰州",119.92],["宿迁",118.27]],
+    "浙江": [["杭州",120.15],["宁波",121.55],["温州",120.69],["嘉兴",120.75],["湖州",120.08],["绍兴",120.58],["金华",119.64],["衢州",118.85],["舟山",122.20],["台州",121.42],["丽水",119.92]],
+    "安徽": [["合肥",117.22],["芜湖",118.37],["蚌埠",117.38],["淮南",116.99],["马鞍山",118.50],["淮北",116.79],["铜陵",117.81],["安庆",117.02],["黄山",118.33],["滁州",118.31],["阜阳",115.81],["宿州",116.98],["六安",116.53],["亳州",115.77],["池州",117.49],["宣城",118.75]],
+    "福建": [["福州",119.29],["厦门",118.08],["莆田",119.00],["三明",117.63],["泉州",118.67],["漳州",117.64],["南平",118.17],["龙岩",117.02],["宁德",119.54]],
+    "江西": [["南昌",115.85],["景德镇",117.17],["萍乡",113.84],["九江",116.00],["新余",114.91],["鹰潭",117.06],["赣州",114.93],["吉安",114.99],["宜春",114.41],["抚州",116.35],["上饶",117.94]],
+    "山东": [["济南",117.12],["青岛",120.38],["淄博",118.05],["枣庄",117.32],["东营",118.67],["烟台",121.44],["潍坊",119.16],["济宁",116.58],["泰安",117.08],["威海",122.12],["日照",119.52],["临沂",118.35],["德州",116.35],["聊城",115.98],["滨州",117.97],["菏泽",115.48]],
+    "河南": [["郑州",113.62],["开封",114.30],["洛阳",112.45],["平顶山",113.19],["安阳",114.39],["鹤壁",114.29],["新乡",113.92],["焦作",113.24],["濮阳",115.02],["许昌",113.85],["漯河",114.01],["三门峡",111.20],["南阳",112.52],["商丘",115.65],["信阳",114.09],["周口",114.69],["驻马店",114.02]],
+    "湖北": [["武汉",114.30],["黄石",115.03],["十堰",110.79],["宜昌",111.28],["襄阳",112.12],["鄂州",114.89],["荆门",112.19],["孝感",113.95],["荆州",112.23],["黄冈",114.87],["咸宁",114.32],["随州",113.38],["恩施",109.48]],
+    "湖南": [["长沙",112.93],["株洲",113.13],["湘潭",112.94],["衡阳",112.57],["邵阳",111.46],["岳阳",113.12],["常德",111.69],["张家界",110.47],["益阳",112.35],["郴州",113.01],["永州",111.61],["怀化",109.99],["娄底",112.00],["湘西",109.72]],
+    "广东": [["广州",113.26],["韶关",113.59],["深圳",114.05],["珠海",113.57],["汕头",116.68],["佛山",113.12],["江门",113.08],["湛江",110.35],["茂名",110.92],["肇庆",112.46],["惠州",114.41],["梅州",116.12],["汕尾",115.37],["河源",114.70],["阳江",111.98],["清远",113.05],["东莞",113.75],["中山",113.39],["潮州",116.62],["揭阳",116.37],["云浮",112.04]],
+    "广西": [["南宁",108.36],["柳州",109.41],["桂林",110.29],["梧州",111.27],["北海",109.11],["防城港",108.35],["钦州",108.65],["贵港",109.59],["玉林",110.18],["百色",106.61],["贺州",111.56],["河池",108.08],["来宾",109.22],["崇左",107.36]],
+    "海南": [["海口",110.32],["三亚",109.51],["三沙",112.33],["儋州",109.57]],
+    "四川": [["成都",104.06],["自贡",104.77],["攀枝花",101.71],["泸州",105.44],["德阳",104.39],["绵阳",104.73],["广元",105.84],["遂宁",105.59],["内江",105.05],["乐山",103.76],["南充",106.08],["眉山",103.84],["宜宾",104.64],["广安",106.63],["达州",107.50],["雅安",103.04],["巴中",106.75],["资阳",104.62],["阿坝",102.22],["甘孜",101.96],["凉山",102.26]],
+    "贵州": [["贵阳",106.63],["六盘水",104.83],["遵义",106.92],["安顺",105.94],["毕节",105.29],["铜仁",109.18],["黔西南",104.89],["黔东南",107.98],["黔南",107.51]],
+    "云南": [["昆明",102.83],["曲靖",103.79],["玉溪",102.54],["保山",99.16],["昭通",103.71],["丽江",100.23],["普洱",100.97],["临沧",100.08],["楚雄",101.54],["红河",103.37],["文山",104.21],["西双版纳",100.79],["大理",100.22],["德宏",98.57],["怒江",98.85],["迪庆",99.70]],
+    "西藏": [["拉萨",91.14],["日喀则",88.88],["昌都",97.17],["林芝",94.36],["山南",91.77],["那曲",92.05],["阿里",80.10]],
+    "陕西": [["西安",108.93],["铜川",109.07],["宝鸡",107.23],["咸阳",108.70],["渭南",109.50],["延安",109.48],["汉中",107.02],["榆林",109.73],["安康",109.02],["商洛",109.94]],
+    "甘肃": [["兰州",103.83],["嘉峪关",98.28],["金昌",102.18],["白银",104.13],["天水",105.71],["武威",102.63],["张掖",100.45],["平凉",106.66],["酒泉",98.49],["庆阳",107.63],["定西",104.62],["陇南",104.92],["临夏",103.21],["甘南",102.91]],
+    "青海": [["西宁",101.77],["海东",102.10],["海北",100.90],["黄南",102.01],["海南",100.61],["果洛",100.24],["玉树",97.00],["海西",97.37]],
+    "宁夏": [["银川",106.23],["石嘴山",106.38],["吴忠",106.19],["固原",106.24],["中卫",105.18]],
+    "新疆": [["乌鲁木齐",87.61],["克拉玛依",84.88],["吐鲁番",89.18],["哈密",93.51],["昌吉",87.30],["博尔塔拉",82.06],["巴音郭楞",86.14],["阿克苏",80.26],["克孜勒苏",76.16],["喀什",75.98],["和田",79.92],["伊犁",81.32],["塔城",82.98],["阿勒泰",88.13]],
+    "香港": [["香港",114.16]], "澳门": [["澳门",113.54]], "台湾": [["台北",121.50],["高雄",120.30]]
+};
+
+const pSel = document.getElementById('provinceSel');
+const cSel = document.getElementById('citySel');
+Object.keys(CITY_DATA).forEach(p => pSel.add(new Option(p, p)));
+pSel.onchange = function() {
+    cSel.innerHTML = '';
+    CITY_DATA[this.value].forEach(c => {
+        let opt = new Option(c[0], c[1]);
+        if(c[0] === '北京' || c[0] === this.value) opt.selected = true;
+        cSel.add(opt);
+    });
+};
+pSel.value = '北京'; pSel.onchange();
+
+const QM = {
+    GUA: {1:'坎',2:'坤',3:'震',4:'巽',5:'中',6:'乾',7:'兑',8:'艮',9:'离'},
+    YANG_JU: { '冬至':[1,7,4], '惊蛰':[1,7,4], '小寒':[2,8,5], '大寒':[3,9,6], '春分':[3,9,6], '雨水':[9,6,3], '清明':[4,1,7], '立夏':[4,1,7], '立春':[8,5,2], '谷雨':[5,2,8], '小满':[5,2,8], '芒种':[6,3,9] },
+    YIN_JU: { '夏至':[9,3,6], '白露':[9,3,6], '小暑':[8,2,5], '大暑':[7,1,4], '秋分':[7,1,4], '立秋':[2,5,8], '寒露':[6,9,3], '立冬':[6,9,3], '处暑':[1,4,7], '霜降':[5,8,2], '小雪':[5,8,2], '大雪':[4,7,1] },
+    STAR: ['','天蓬','天芮','天冲','天辅','天禽','天心','天柱','天任','天英'],
+    DOOR: {1:'休',2:'死',3:'伤',4:'杜',6:'开',7:'惊',8:'生',9:'景'}, 
+    PATH: [1,8,3,4,9,2,7,6], STEMS: '甲乙丙丁戊己庚辛壬癸', ZHI: '子丑寅卯辰巳午未申酉戌亥',
+    
+    getWx: function(n) {
+        if('甲乙寅卯伤杜天冲天辅'.includes(n)) return 'wx-wood';
+        if('丙丁巳午景天英腾蛇朱雀'.includes(n)) return 'wx-fire';
+        if('戊己辰戌丑未死生天任天芮天禽值符勾陈九地'.includes(n)) return 'wx-earth';
+        if('庚辛申酉惊开天柱天心天蓬九天白虎太阴'.includes(n)) return 'wx-metal';
+        if('休壬癸亥子玄武'.includes(n)) return 'wx-water';
+        return '';
+    },
+
+    calc: function(dateStr) {
+        let d = new Date(dateStr), lunar = Lunar.fromDate(d), bazi = lunar.getBaZi();
+        let jq = lunar.getPrevJieQi(true).getName().replace(/[节气]/g,'');
+        
+        let dGZ = bazi[2], tGZ = bazi[3];
+        let dGIdx = this.STEMS.indexOf(dGZ[0]), dZIdx = this.ZHI.indexOf(dGZ[1]);
+        let yuan = Math.floor(((dGIdx*6 - dZIdx*5 + 60)%60)/5)%3;
+        let isYang = !!this.YANG_JU[jq], ju = (isYang ? this.YANG_JU : this.YIN_JU)[jq][yuan] || 1;
+
+        let stems = ['戊','己','庚','辛','壬','癸','丁','丙','乙'];
+        let earth = {}; let p = ju;
+        for(let i=0; i<9; i++) { earth[p] = stems[i]; p = isYang ? (p%9)+1 : (p-1)||9; }
+
+        let hG = tGZ[0], hZ = tGZ[1];
+        let xunDiff = (this.ZHI.indexOf(hZ) - this.STEMS.indexOf(hG) + 12) % 12;
+        let leadStem = {0:'戊',10:'己',8:'庚',6:'辛',4:'壬',2:'癸'}[xunDiff];
+        let xunZhi = {0:'子',10:'戌',8:'申',6:'午',4:'辰',2:'寅'}[xunDiff];
+        
+        let leadP = 0; for(let k in earth) if(earth[k]===leadStem) leadP=+k;
+        let zhifu = (leadP===5) ? '天禽' : this.STAR[leadP];
+        let zhishi = (leadP===5) ? '死' : (this.DOOR[leadP]||'死');
+
+        let hourStemLoc = 0, search = (hG==='甲')?leadStem:hG;
+        for(let k in earth) if(earth[k]===search) hourStemLoc=+k;
+        let zfLand = (hourStemLoc===5)?2:hourStemLoc;
+        
+        let startP = (leadP===5)?2:leadP;
+        let sIdx = this.PATH.indexOf(startP), eIdx = this.PATH.indexOf(zfLand);
+        let shift = (eIdx - sIdx + 8) % 8;
+        
+        let grid = {}; for(let i=1; i<=9; i++) grid[i] = { id:i, earth:earth[i] };
+        
+        for(let i=0; i<8; i++) {
+            let curr = this.PATH[i], src = this.PATH[(i - shift + 8)%8];
+            let star = (src===2)?'天芮':this.STAR[src], sky = earth[src];
+            if(src===2) { sky = earth[5]+(earth[2]||''); grid[curr].hasQin=true; }
+            grid[curr].star = star; grid[curr].sky = sky;
+        }
+        grid[5].sky = '';
+
+        let step = (this.ZHI.indexOf(hZ) - this.ZHI.indexOf(xunZhi) + 12) % 12;
+        let zsLand = leadP;
+        if(isYang) { zsLand += step; while(zsLand>9) zsLand-=9; } else { zsLand -= step; while(zsLand<1) zsLand+=9; }
+        if(zsLand===5) zsLand=2;
+        
+        let doors = ['休','生','伤','杜','景','死','惊','开'], dStart = doors.indexOf(zhishi);
+        let tIdx = this.PATH.indexOf(zsLand);
+        for(let i=0; i<8; i++) grid[this.PATH[(tIdx+i)%8]].door = doors[(dStart+i)%8];
+        
+        let gods = ['值符','腾蛇','太阴','六合','白虎','玄武','九地','九天'], gStart = this.PATH.indexOf(zfLand);
+        for(let i=0; i<8; i++) {
+            let idx = isYang ? (gStart+i)%8 : (gStart-i+8)%8;
+            grid[this.PATH[idx]].god = gods[i];
+        }
+
+        let maMap = {'申':'寅','子':'寅','辰':'寅','寅':'申','午':'申','戌':'申','亥':'巳','卯':'巳','未':'巳','巳':'亥','酉':'亥','丑':'亥'};
+        let maP = {'寅':8,'申':2,'亥':6,'巳':4}[maMap[hZ]]||0;
+        let kongP = [];
+        if(xunDiff===0) kongP=[6]; if(xunDiff===10) kongP=[2,7]; if(xunDiff===8) kongP=[9,2];
+        if(xunDiff===6) kongP=[4]; if(xunDiff===4) kongP=[8,3]; if(xunDiff===2) kongP=[1,8];
+
+        return {
+            dateStr: dateStr.replace('T',' '), bazi: bazi.join(' '),
+            info: `${jq} ${['上','中','下'][yuan]}元 ${isYang?'阳':'阴'}${ju}局`,
+            xun: `甲${xunZhi}${leadStem}`, zhifu, zhishi, grid, maP, kongP
+        };
+    }
+};
+
+function setDefaultTime() {
+    let now = new Date(); let pad = n=>n<10?'0'+n:n;
+    document.getElementById('askTime').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+async function runSystem() {
+    let question = document.getElementById('userQuestion').value;
+    let t = document.getElementById('askTime').value;
+    if(!t) { alert('请选择问事时间'); return; }
+    
+    let lng = parseFloat(document.getElementById('citySel').value) || 120;
+    let d = new Date(t), diff = (lng - 120) * 4;
+    d.setMinutes(d.getMinutes() + diff);
+    let pad = n=>n<10?'0'+n:n;
+    let solarT = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    
+    let data = QM.calc(solarT);
+    // 记录最近一次盘面，供“奇门 + 股市 AI 解读”使用
+    window._lastPanData = data;
+    
+    document.getElementById('panArea').style.display = 'block';
+    document.getElementById('dateInfo').innerText = data.dateStr;
+    document.getElementById('baziInfo').innerText = data.bazi;
+    document.getElementById('jieqiInfo').innerText = data.info;
+    document.getElementById('xunInfo').innerText = "旬首：" + data.xun;
+    document.getElementById('zhifuInfo').innerText = `值符[${data.zhifu}] 值使[${data.zhishi}]`;
+    document.getElementById('solarNote').innerText = `* 已校准真太阳时 (${lng}° ${diff>0?'+':''}${Math.round(diff)}分)`;
+    
+    let bt = document.getElementById('birthTime').value;
+    if(bt) {
+        document.getElementById('birthRow').style.display = 'block';
+        let bd = new Date(bt); bd.setMinutes(bd.getMinutes() + diff);
+        document.getElementById('birthInfo').innerText = Lunar.fromDate(bd).getBaZi().join(' ');
+    } else {
+        document.getElementById('birthRow').style.display = 'none';
+    }
+
+    let el = document.getElementById('grid'); el.innerHTML = '';
+    [4,9,2, 3,5,7, 8,1,6].forEach(id => {
+        let cell = document.createElement('div'), g = data.grid[id];
+        
+        if(id===5) {
+            cell.className = 'center-cell';
+            cell.innerHTML = `<div style="font-size:0.8em;color:#999;margin-bottom:4px;">中五</div><div class="stem-char wx-earth">${g.earth}</div>`;
+        } else {
+            cell.className = 'cell';
+            let leftCol = `<div class="cell-left"><span class="font-gua">${QM.GUA[id]}</span></div>`;
+            let starHtml = g.hasQin ? `<span class="font-star wx-earth">天禽</span>` : `<span class="font-star ${QM.getWx(g.star)}">${g.star}</span>`;
+            let midCol = `<div class="cell-mid"><span class="font-god ${QM.getWx(g.god)}">${g.god}</span>${starHtml}<span class="font-door ${QM.getWx(g.door)}">${g.door}门</span></div>`;
+            let skyHtml = '';
+            if(g.sky) { let stems = g.sky.split(''); skyHtml = stems.map(s => `<span class="stem-char ${QM.getWx(s)}">${s}</span>`).join(''); }
+            let rightCol = `<div class="cell-right"><div class="sky-group">${skyHtml}</div><div class="stem-char ${QM.getWx(g.earth)}">${g.earth}</div></div>`;
+            
+            let marks = '';
+            if(data.maP===id) marks += '<div class="mark-ma">马</div>';
+            if(data.kongP.includes(id)) marks += '<div class="mark-kong">空</div>';
+            
+            cell.innerHTML = leftCol + midCol + rightCol + marks;
+            if(data.zhishi === g.door) cell.style.backgroundColor = 'rgba(255,0,0,0.03)';
+        }
+        el.appendChild(cell);
+    });
+
+    var mode = (document.querySelector('input[name="qimenMode"]:checked') || {}).value || 'brief';
+    if (mode === 'brief' && document.getElementById('apiKey').value) {
+        await doAI(data, question);
+    } else if (mode === 'detail') {
+        if (document.getElementById('apiKey').value) await doAI(data, question);
+        else document.getElementById('aiResult').style.display = 'none';
+    } else {
+        document.getElementById('aiResult').style.display = 'none';
+    }
+}
+
+async function doAI(d, userQ) {
+    var mode = (document.querySelector('input[name="qimenMode"]:checked') || {}).value || 'brief';
+    if (mode === 'detail') {
+        var token = getStoredPaidToken();
+        if (!token) {
+            showPayModal();
+            return;
+        }
+    }
+    let box = document.getElementById('aiResult');
+    box.style.display = 'block';
+    box.innerHTML = '<div class="ai-header">🤖 AI 大师正在凝神推算...</div>';
+
+    try {
+        const apiKey = sanitizeApiKey(document.getElementById('apiKey').value);
+        var body = { panData: d, userQuestion: userQ, apiKey };
+        if (mode === 'detail' && getStoredPaidToken()) body.paidToken = getStoredPaidToken();
+        const res = await fetch(API_BASE + '/api/qimen/interpret', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            box.innerHTML = '<div class="ai-header">❌ 服务器错误</div><div style="font-size:13px;color:#6b7280;">' + text + '</div>';
+            return;
+        }
+
+        const json = await res.json();
+        const content = json.content || '';
+        var header = mode === 'brief' ? '📋 简要模式 · 约300字分析（不含结果）' : '🤖 AI 宗师解读';
+        box.innerHTML = '<div class="ai-header">' + header + '</div>' + marked.parse(content);
+
+        // 首次解读成功后，展示追问对话框（仅详细模式显示）
+        const chatCard = document.getElementById('aiChatCard');
+        const followBox = document.getElementById('followAnswer');
+        if (chatCard) {
+            chatCard.style.display = 'block';
+        }
+        if (followBox) {
+            followBox.style.display = 'none';
+            followBox.innerHTML = '';
+        }
+    } catch(e) {
+        box.innerHTML = '<div class="ai-header">❌ 连接失败</div>请检查服务器或网络连接。';
+    }
+}
+
+// 奇门 AI 追问对话
+async function runQimenFollowChat() {
+    const q = (document.getElementById('followQuestion').value || '').trim();
+    const apiKey = sanitizeApiKey(document.getElementById('apiKey').value);
+    const box = document.getElementById('followAnswer');
+
+    if (!window._lastPanData) {
+        alert('请先完成一次排盘与初次 AI 解读，再进行追问。');
+        return;
+    }
+    if (!q) {
+        alert('请先输入要追问的具体问题。');
+        return;
+    }
+    if (!apiKey) {
+        alert('请先在上方填写 DeepSeek API Key。');
+        return;
+    }
+
+    box.style.display = 'block';
+    box.innerHTML = '💬 AI 宗师正在根据当前这盘继续推演，请稍候...';
+
+    try {
+        var chatBody = { panData: window._lastPanData, followQuestion: q, apiKey };
+        if (getStoredPaidToken()) chatBody.paidToken = getStoredPaidToken();
+        const res = await fetch(API_BASE + '/api/qimen/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(chatBody)
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            box.innerHTML = '❌ 追问接口报错：<br><span style="font-size:12px;color:#6b7280;">' + text + '</span>';
+            return;
+        }
+
+        const json = await res.json();
+        const content = json.content || '';
+        box.innerHTML = marked.parse(content);
+    } catch (e) {
+        box.innerHTML = '❌ 无法连接奇门追问接口，请检查服务器或网络情况。';
+    }
+}
+
+let stockChart;
+
+function renderStockKline(kData, zone) {
+    const wrapper = document.getElementById('stockChart');
+    const canvasEl = document.getElementById('stockChartCanvas');
+    if (!wrapper) return;
+    wrapper.style.display = 'block';
+    var dom = canvasEl || wrapper;
+
+    // 防御：如果 ECharts 没加载成功，给出提示
+    if (typeof echarts === 'undefined') {
+        if (canvasEl) canvasEl.innerHTML = '<div style="padding:16px;font-size:14px;color:#b91c1c;">K 线图依赖的 ECharts 资源未能加载（可能是网络或 CDN 被拦截），当前仅能显示文字预测区间。</div>';
+        return;
+    }
+    if (!kData || !kData.candles || kData.candles.length === 0) {
+        if (canvasEl) canvasEl.innerHTML = '<div style="padding:16px;font-size:14px;color:#64748b;">暂无 K 线数据，仅显示上方文字解读。</div>';
+        return;
+    }
+
+    if (!stockChart) {
+        stockChart = echarts.init(dom, null, { renderer: 'canvas' });
+        window.addEventListener('resize', function() {
+            try { if (stockChart) stockChart.resize(); } catch(e) {}
+        });
+    }
+    const dates = kData.candles.map(c => c.date);
+    const values = kData.candles.map(c => [c.open, c.close, c.low, c.high]);
+
+    // 在现有 K 线后面增加“未来几日”的模拟 K 线（简单随机游走，让视觉上有涨落）
+    let extendedDates = dates.slice();
+    let extendedValues = values.slice();
+    const last = kData.candles[kData.candles.length - 1];
+    let lastClose = last ? last.close : 0;
+
+    // 简单伪随机函数，保证每次刷新图形时未来 K 线不会全部为水平线
+    let seed = Date.now() % 100000;
+    function frand(min, max) {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        const r = seed / 0xffffffff;
+        return min + (max - min) * r;
+    }
+
+    const futureLabels = ['预估+1', '预估+2', '预估+3', '预估+4', '预估+5', '预估+6', '预估+7', '预估+8', '预估+9', '预估+10']; // 未来十日示意
+    const futureValues = [];
+    futureLabels.forEach(() => {
+        const changePct = frand(-0.025, 0.025); // 约 -2.5% ~ +2.5%
+        const close = +(lastClose * (1 + changePct)).toFixed(2);
+        const high = +(Math.max(close, lastClose) * (1 + frand(0, 0.01))).toFixed(2);
+        const low = +(Math.min(close, lastClose) * (1 - frand(0, 0.01))).toFixed(2);
+        const open = +(lastClose + (close - lastClose) * frand(0.2, 0.8)).toFixed(2);
+        futureValues.push([open, close, low, high]);
+        lastClose = close;
+    });
+
+    futureLabels.forEach((lab, idx) => {
+        extendedDates.push(lab);
+        extendedValues.push(futureValues[idx]);
+    });
+
+    const option = {
+        grid: { left: 44, right: 20, top: 24, bottom: 36 },
+        backgroundColor: 'transparent',
+        xAxis: {
+            type: 'category',
+            data: extendedDates,
+            boundaryGap: true,
+            axisLine: { lineStyle: { color: 'rgba(14,165,233,0.25)' } },
+            axisLabel: { color: '#64748b', fontSize: 11 },
+            axisTick: { show: false }
+        },
+        yAxis: {
+            scale: true,
+            axisLine: { show: false },
+            axisLabel: { color: '#64748b', fontSize: 11 },
+            splitLine: { lineStyle: { color: 'rgba(14,165,233,0.12)', type: 'dashed' } }
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'cross' },
+            backgroundColor: 'rgba(15,23,42,0.9)',
+            borderColor: 'rgba(14,165,233,0.35)',
+            textStyle: { color: '#f8fafc', fontSize: 12 }
+        },
+        series: [
+            {
+                type: 'candlestick',
+                data: extendedValues,
+                itemStyle: {
+                    color: '#ef4444',
+                    color0: '#22c55e',
+                    borderColor: '#dc2626',
+                    borderColor0: '#16a34a'
+                },
+                markLine: zone ? {
+                    symbol: 'none',
+                    lineStyle: { type: 'dashed', width: 1.2 },
+                    data: [
+                        {
+                            yAxis: zone.basePoint,
+                            lineStyle: { color: '#6366f1' },
+                            label: { formatter: '基准点位', color: '#4f46e5', fontSize: 10 }
+                        },
+                        {
+                            yAxis: zone.support,
+                            lineStyle: { color: '#0ea5e9' },
+                            label: { formatter: '下方参考区', color: '#0369a1', fontSize: 10 }
+                        },
+                        {
+                            yAxis: zone.resistance,
+                            lineStyle: { color: '#f97316' },
+                            label: { formatter: '上方参考区', color: '#c2410c', fontSize: 10 }
+                        }
+                    ]
+                } : undefined,
+                // 整个图的背景不做 markArea，只用下方单独的区间带来强调未来部分
+            },
+            zone ? {
+                type: 'line',
+                data: [],
+                markArea: {
+                    itemStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0, y: 1, x2: 0, y2: 0,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(249, 115, 22, 0.5)' },
+                                { offset: 0.35, color: 'rgba(99, 102, 241, 0.35)' },
+                                { offset: 0.65, color: 'rgba(59, 130, 246, 0.35)' },
+                                { offset: 1, color: 'rgba(14, 165, 233, 0.5)' }
+                            ]
+                        },
+                        borderColor: 'rgba(14, 165, 233, 0.5)',
+                        borderWidth: 1.5
+                    },
+                    data: [[
+                        {
+                            xAxis: dates[dates.length - 1],
+                            yAxis: zone.support
+                        },
+                        {
+                            xAxis: extendedDates[extendedDates.length - 1],
+                            yAxis: zone.resistance,
+                            label: {
+                                show: true,
+                                position: 'insideTopRight',
+                                formatter: '未来几日模拟区间',
+                                color: '#0369a1',
+                                fontSize: 10
+                            }
+                        }
+                    ]]
+                }
+            } : null
+        ].filter(Boolean)
+    };
+
+    stockChart.setOption(option);
+    setTimeout(function() {
+        try { if (stockChart) stockChart.resize(); } catch(e) {}
+    }, 100);
+}
+
+function getKlinePointsByRange() {
+    const sel = document.getElementById('stockRange');
+    const range = sel ? sel.value : '1d';
+    switch (range) {
+        case '1h': return 20;   // 近 1 小时：更细一些
+        case '3h': return 40;   // 近 3 小时
+        case '6m': return 120;  // 近半年
+        case '1y': return 120;  // 近一年（受后端上限影响）
+        case '1d':
+        default: return 60;     // 近 1 天
+    }
+}
+
+// 股市预测：调用后端 /api/stocks/predict + /api/stocks/kline
+async function runStockPredict() {
+    const market = document.getElementById('stockMarket').value;
+    const symbol = (document.getElementById('stockSymbol').value || '').trim();
+    const horizon = document.getElementById('stockHorizon').value;
+    const box = document.getElementById('stockResult');
+    const aiBox = document.getElementById('stockAiExplain');
+
+    if (!symbol) {
+        alert('请先输入股票代码，例如 600519、000001 或 AAPL');
+        return;
+    }
+
+    box.style.display = 'block';
+    aiBox.style.display = 'none';
+    var chartWrap = document.getElementById('stockChart');
+    if (chartWrap) chartWrap.style.display = 'none';
+    box.innerHTML = '⏳ 正在根据盘位与波动区间进行模拟预测，请稍候...';
+
+    try {
+        const res = await fetch(API_BASE + '/api/stocks/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol, market, horizon })
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            box.innerHTML = '❌ 服务器返回错误：<br><span style="font-size:12px;color:#6b7280;">' + text + '</span>';
+            return;
+        }
+
+        const data = await res.json();
+        const marketName = data.market === 'US' ? '美股' : 'A股';
+        const hzText =
+            data.horizon === 'week' ? '未来一周'
+            : data.horizon === 'month' ? '未来一月'
+            : '当日 / 次日';
+
+        box.innerHTML = `
+            <div class="stock-result-title">📊 ${marketName} ${data.symbol} · 股市盘位预测（示例）</div>
+            <div class="stock-metric-item" style="margin-bottom:12px;">
+                <div class="stock-metric-label">预测周期</div>
+                <div class="stock-metric-value">${hzText}</div>
+            </div>
+            <div class="stock-metrics-grid">
+                <div class="stock-metric-item">
+                    <div class="stock-metric-label">参考基准点位</div>
+                    <div class="stock-metric-value">${data.basePoint}</div>
+                </div>
+                <div class="stock-metric-item stock-metric-support">
+                    <div class="stock-metric-label">预测支撑区</div>
+                    <div class="stock-metric-value">${data.support}</div>
+                </div>
+                <div class="stock-metric-item stock-metric-resistance">
+                    <div class="stock-metric-label">预测压力区</div>
+                    <div class="stock-metric-value">${data.resistance}</div>
+                </div>
+                <div class="stock-metric-item">
+                    <div class="stock-metric-label">模型置信度（示例）</div>
+                    <div class="stock-metric-value">${data.confidence}%</div>
+                </div>
+                <div class="stock-metric-item stock-metric-tendency">
+                    <div class="stock-metric-label">预期走势判断</div>
+                    <div class="stock-metric-value">${data.tendency}</div>
+                </div>
+            </div>
+            <div class="stock-summary">${data.summary}</div>
+        `;
+
+        // K 线图仅在使用「奇门 + AI 解读」后显示，此处不请求 K 线
+    } catch (e) {
+        box.innerHTML = '❌ 无法连接预测接口，请检查服务器是否已启动。';
+    }
+}
+
+// 奇门 + 股市 AI 综合解读
+async function runStockQimenAI() {
+    const symbol = (document.getElementById('stockSymbol').value || '').trim();
+    const market = document.getElementById('stockMarket').value;
+    const apiKey = sanitizeApiKey(document.getElementById('apiKey').value);
+    const aiBox = document.getElementById('stockAiExplain');
+
+    if (!window._lastPanData) {
+        alert('请先完成一次奇门排盘（上面的“开始排盘与分析”按钮），再进行股市奇门解读。');
+        return;
+    }
+    if (!symbol) {
+        alert('请先输入股票代码，例如 600519、000001 或 AAPL');
+        return;
+    }
+    if (!apiKey) {
+        alert('请先在上方填写 DeepSeek API Key（用于调用 AI 解读）。');
+        return;
+    }
+    var stockMode = (document.querySelector('input[name="stockMode"]:checked') || {}).value || 'brief';
+    if (stockMode === 'brief') {
+        aiBox.style.display = 'block';
+        aiBox.innerHTML = '<div class="stock-ai-title">📋 简要模式 · 仅展示盘位与 K 线</div><div class="brief-mode-tip">当前不生成奇门 AI 解读。可先使用上方「股市盘位预测」查看盘位与 K 线；如需详细解读请选择「详细（付费）」并完成支付解锁。</div>';
+        return;
+    }
+    if (stockMode === 'detail') {
+        var token = getStoredPaidToken();
+        if (!token) {
+            showPayModal();
+            return;
+        }
+    }
+
+    aiBox.style.display = 'block';
+    aiBox.innerHTML = '☯️ 正在结合当前奇门盘面与股票信息进行 AI 解读，请稍候...';
+
+    try {
+        var stockBody = { panData: window._lastPanData, symbol, market, apiKey };
+        if (stockMode === 'detail' && getStoredPaidToken()) stockBody.paidToken = getStoredPaidToken();
+        const res = await fetch(API_BASE + '/api/stocks/qimen-interpret', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stockBody)
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            aiBox.innerHTML = '❌ 奇门股市解读接口报错：<br><span style="font-size:12px;color:#6b7280;">' + text + '</span>';
+            return;
+        }
+
+        const json = await res.json();
+        const content = json.content || '';
+
+        let zoneHtml = '';
+        if (json.qmBasePoint && json.qmSupport && json.qmResistance) {
+            zoneHtml = `
+            <div class="stock-zone-card">
+                <div style="font-weight:600;margin-bottom:8px;">奇门视角模拟点位区间（示例）</div>
+                <div class="stock-metrics-grid" style="margin-bottom:8px;">
+                    <div class="stock-metric-item"><div class="stock-metric-label">基准点位约</div><div class="stock-metric-value">${json.qmBasePoint}</div></div>
+                    <div class="stock-metric-item stock-metric-support"><div class="stock-metric-label">下方参考区</div><div class="stock-metric-value">${json.qmSupport}</div></div>
+                    <div class="stock-metric-item stock-metric-resistance"><div class="stock-metric-label">上方参考区</div><div class="stock-metric-value">${json.qmResistance}</div></div>
+                </div>
+                ${json.qiComment ? `<div style="margin-bottom:6px;">· 气数判断：${json.qiComment}</div>` : ''}
+                <div class="stock-disclaimer">（仅为奇门象义推演的演示数值，不代表真实行情或投资建议）</div>
+            </div>
+        `;
+        }
+
+        aiBox.innerHTML =
+            '<div class="stock-ai-title">☯️ 奇门 · 股市 AI 综合解读</div>' +
+            zoneHtml +
+            marked.parse(content);
+
+        // 奇门 + AI 解读完成后，同步显示 K 线图（含奇门区间）
+        var chartWrap = document.getElementById('stockChart');
+        if (chartWrap) chartWrap.style.display = 'block';
+        try {
+            const kRes = await fetch(API_BASE + '/api/stocks/kline', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    symbol,
+                    market,
+                    points: getKlinePointsByRange()
+                })
+            });
+            if (kRes.ok) {
+                const kData = await kRes.json();
+                var zone = (json.qmBasePoint != null && json.qmSupport != null && json.qmResistance != null)
+                    ? {
+                        basePoint: parseFloat(json.qmBasePoint) || 0,
+                        support: parseFloat(json.qmSupport) || 0,
+                        resistance: parseFloat(json.qmResistance) || 0
+                    }
+                    : null;
+                renderStockKline(kData, zone);
+            } else {
+                var canvasEl = document.getElementById('stockChartCanvas');
+                if (canvasEl) canvasEl.innerHTML = '<div style="padding:16px;font-size:14px;color:#64748b;">K 线数据暂不可用，请稍后重试。上方文字解读正常。</div>';
+            }
+        } catch (e) {
+            var canvasEl = document.getElementById('stockChartCanvas');
+            if (canvasEl) canvasEl.innerHTML = '<div style="padding:16px;font-size:14px;color:#64748b;">K 线加载失败，仅显示上方文字解读。</div>';
+        }
+    } catch (e) {
+        aiBox.innerHTML = '❌ 无法连接奇门股市解读接口，请检查服务器是否已启动或网络情况。';
+    }
+}
+
+// 顶部视图切换：奇门问事 / 股市预测
+function switchView(mode) {
+    const qm = document.getElementById('qimenSection');
+    const st = document.getElementById('stockSection');
+    const tq = document.getElementById('tab-qimen');
+    const ts = document.getElementById('tab-stock');
+
+    if (mode === 'stock') {
+        if (qm) qm.style.display = 'none';
+        if (st) st.style.display = 'block';
+        if (tq) tq.classList.remove('active');
+        if (ts) ts.classList.add('active');
+    } else {
+        if (qm) qm.style.display = 'block';
+        if (st) st.style.display = 'none';
+        if (tq) tq.classList.add('active');
+        if (ts) ts.classList.remove('active');
+    }
+}
+
+setDefaultTime();
+</script>
+</body>
+</html>
+

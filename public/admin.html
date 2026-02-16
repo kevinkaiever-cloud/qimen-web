@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>收款后发解锁码</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .box { background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); max-width: 360px; width: 100%; }
+    h1 { margin: 0 0 8px; font-size: 1.25rem; color: #111; }
+    .hint { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+    input { width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-bottom: 12px; }
+    button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+    .btn-get { background: #333; color: #fff; margin-bottom: 8px; }
+    .btn-get:disabled { background: #999; cursor: not-allowed; }
+    .btn-copy { background: #047857; color: #fff; display: none; }
+    .btn-copy.show { display: block; }
+    .code-wrap { display: none; margin-top: 16px; padding: 14px; background: #f0fdf4; border-radius: 8px; text-align: center; }
+    .code-wrap.show { display: block; }
+    .code-num { font-size: 1.8rem; letter-spacing: 0.2em; font-weight: 700; color: #047857; }
+    .msg { margin-top: 12px; font-size: 0.9rem; color: #666; }
+    .msg.err { color: #b91c1c; }
+    .msg.ok { color: #047857; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>收款后发解锁码</h1>
+    <p class="hint">手机到账后，输入管理员密钥获取解锁码，一键复制发给客户即可。</p>
+    <input type="password" id="adminKey" placeholder="管理员密钥（与 .env 里 PAID_SECRET 一致）" autocomplete="off">
+    <button type="button" class="btn-get" id="btnGet">获取解锁码</button>
+    <div class="code-wrap" id="codeWrap">
+      <div class="code-num" id="codeNum"></div>
+      <button type="button" class="btn-copy" id="btnCopy">复制解锁码</button>
+    </div>
+    <p class="msg" id="msg"></p>
+  </div>
+  <script>
+    var API_BASE = window.location.origin;
+    var codeWrap = document.getElementById('codeWrap');
+    var codeNum = document.getElementById('codeNum');
+    var btnCopy = document.getElementById('btnCopy');
+    var msgEl = document.getElementById('msg');
+
+    document.getElementById('btnGet').onclick = function() {
+      var key = (document.getElementById('adminKey').value || '').trim();
+      if (!key) { msgEl.textContent = '请先输入管理员密钥'; msgEl.className = 'msg err'; return; }
+      msgEl.textContent = '获取中...'; msgEl.className = 'msg';
+      codeWrap.classList.remove('show');
+      fetch(API_BASE + '/api/admin/unlock-code?adminKey=' + encodeURIComponent(key))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.code) {
+            codeNum.textContent = data.code;
+            codeWrap.classList.add('show');
+            btnCopy.classList.add('show');
+            btnCopy.dataset.code = data.code;
+            msgEl.textContent = '点击下方按钮复制后，粘贴发给客户';
+            msgEl.className = 'msg ok';
+          } else {
+            msgEl.textContent = data.error || '获取失败'; msgEl.className = 'msg err';
+          }
+        })
+        .catch(function() { msgEl.textContent = '网络错误'; msgEl.className = 'msg err'; });
+    };
+
+    btnCopy.onclick = function() {
+      var code = btnCopy.dataset.code;
+      if (!code) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(function() {
+          msgEl.textContent = '已复制到剪贴板，去微信粘贴发给客户即可';
+          msgEl.className = 'msg ok';
+        }).catch(function() { fallbackCopy(code); });
+      } else { fallbackCopy(code); }
+    };
+    function fallbackCopy(code) {
+      var ta = document.createElement('textarea');
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        msgEl.textContent = '已复制，去微信粘贴发给客户即可';
+        msgEl.className = 'msg ok';
+      } catch (e) { msgEl.textContent = '请手动复制上方数字'; msgEl.className = 'msg err'; }
+      document.body.removeChild(ta);
+    }
+  </script>
+</body>
+</html>
